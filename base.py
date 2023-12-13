@@ -1,6 +1,6 @@
 from dataclasses import dataclass 
-import mysql.connector 
-import pulp 
+import pulp  
+import random 
 
 @dataclass 
 class Player: 
@@ -27,9 +27,6 @@ class League:
     id: int 
     name: str 
     standings: list 
-
-class DB_Handler: 
-    pass  
 
 class Queue: 
     def __init__(self): 
@@ -71,7 +68,7 @@ class Stack:
         return self.items[0]                
     
     def is_empty(self): 
-        return not self.items 
+        return not self.items  
 
 class Optimiser: 
     lineup_size = 11 
@@ -90,33 +87,55 @@ class Optimiser:
         4: 3
     } 
 
-class TransferOptimiser(Optimiser):  
-    def generate_transfers(self, players, current_team, budget, max_transfers, number_of_suggestions=10): 
-        problem = pulp.LpProblem('FPL_Optimiser', pulp.LpMaximize) 
-        remove_player = pulp.LpVariable.dicts('Remove', [player.player_id for player in current_team], cat=pulp.LpBinary)  
-        add_player = pulp.LpVariable.dicts('Add', [player.player_id for player in players if player not in current_team], cat=pulp.LpBinary)   
-
-        problem += pulp.lpSum(player.composite_score*add_player[player.player_id] for player in players if player not in current_team) - pulp.lpSum(player.composite_score*remove_player[player.player_id] for player in current_team)  
-        problem += pulp.lpSum(add_player[player.player_id] for player in players if player not in current_team) == pulp.lpSum(remove_player[player.player_id] for player in current_team) 
-        problem += pulp.lpSum(add_player[player.player_id] for player in players if player not in current_team) <= max_transfers 
-        budget_change = pulp.lpSum(add_player[player.player_id]*player.cost for player in players if player not in current_team) - pulp.lpSum(remove_player[player.player_id]*player.cost for player in current_team) 
-        problem += budget_change + budget >= 0 
-
-        for position, value in self.position_constraints.items(): 
-            current_in_position = sum(1 for player in current_team if player.position == position) 
-            min_in_position, max_in_position = self.formation_constraints[position]  
-
-            problem += pulp.lpSum(add_player[player.player_id] for player in players if player.position == position) - pulp.lpSum(remove_player[player.player_id] for player in current_team if player.position == position) + current_in_position >= min_in_position 
-            problem += pulp.lpSum(add_player[player.player_id] for player in players if player.position == position) - pulp.lpSum(remove_player[player.player_id] for player in current_team if player.position == position) + current_in_position <= max_in_position 
+class TransferOptmiser(Optimiser):  
+    def generate_transfers(self, user_team, players, budget): 
+        transfers = [] 
+        goalkeepers = self.get_top_10(1, players) 
+        defenders = self.get_top_10(2, players) 
+        midfielders = self.get_top_10(3, players) 
+        forwards = self.get_top_10(4, players)  
+        players = self.get_unused_players(user_team, players) 
+        for x in user_team:  
+            if x.position == 1: 
+                for y in goalkeepers: 
+                    if self.is_valid_transfer(y, x, user_team, budget): 
+                        transfers.append([x, y]) 
+            elif x.position == 2: 
+                for y in defenders: 
+                    if self.is_valid_transfer(y, x, user_team, budget): 
+                        transfers.append([x, y]) 
+            elif x.position == 3: 
+                for y in midfielders: 
+                    if self.is_valid_transfer(y, x, user_team, budget): 
+                        transfers.append([x, y]) 
+            elif x.position == 4: 
+                for y in forwards: 
+                    if self.is_valid_transfer(y, x, user_team, budget): 
+                        transfers.append([x, y])   
         
-        for team in range(1, 21): 
-            current_in_team = sum(1 for player in current_team if player.team == team) 
-            problem += pulp.lpSum(add_player[player.player_id] for player in players if player.team == team) - pulp.lpSum(remove_player[player.player_id] for player in current_team if player.team == team) + current_in_team <= self.team_max 
+        return transfers.sort(key=lambda x: x[1].composite_score-x[0].composite_score, reverse=True) 
 
-        problem.solve()  
-        transfers = [player for player in players if pulp.value(add_player[player.player_id])==1] + [player for player in current_team if pulp.value(remove_player[player.player_id])==1] 
-        budget_used = sum([player.cost for player in transfers if player not in current_team]) 
-        return sorted(transfers, key=lambda x: x.position), budget_used 
+    def get_unused_players(self, user_team, players): 
+        for x in players: 
+            if x not in user_team: 
+                players.remove(x) 
+
+    def get_top_10(position, players): 
+        for x in players: 
+            if x.position == position: 
+                players.remove(x)  
+        
+        players.sort(key=lambda x: x.composite_score) 
+        return players[:10]  
+
+    def is_valid_transfer(cls, player_in, player_out, user_team, budget): 
+        if player_in.position == player_out.position: 
+            return False 
+        if sum([1 for x in user_team if x.team == player_in.team]) - [1 if player_out.team == player_in.team else 0] >= cls.team_max: 
+            return False  
+        if player_in.cost > player_out.cost+budget: 
+            return False 
+        return True 
 
 class ChipOptimiser(Optimiser): 
     chip_switcher = { 
@@ -208,3 +227,5 @@ class RatingSystem:
     @classmethod 
     def get_team_rating(cls, team_information) -> float: 
         pass  
+
+

@@ -48,7 +48,7 @@ def get_account_cookies(session, email, password, retries=1, cooldown=1):
     headers = { 
         'User-Agent': 'Dalvik', 
         'Accept-Language': 'en-US,enq=0.5'
-    } 
+    }
     while True: 
         try: 
             with session.post(api_urls['login'], data=data, headers=headers): 
@@ -121,7 +121,7 @@ def create_player_object(connection, player_id):
     data = cursor.fetchall()  
     print(*data[0]) 
     cursor.close()  
-    return base.Player(*data[0]) 
+    return base.Player(*data[0])  
 
 def create_user_object(session, cookies): 
     data = fetch(session, api_urls['me'], cookies=cookies)['player']

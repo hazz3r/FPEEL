@@ -47,7 +47,7 @@ class WindowParent(QMainWindow):
     
     def back_window(self): 
         if self.previous_window: 
-            self.open_window(self.previous_window)  
+            self.open_window(self.previous_window)   
 
     def apply_colour(self, widget):  
         if widget.children(): 
@@ -291,10 +291,10 @@ class LineupWindow(WindowParent):
         return base.ChipOptimiser.generate_team(players, budget, bench_importance, chip_type)   
     
     def seperate_lineup(self, arr): 
-        return arr[:11], arr[11:]    
+        return arr[:11], arr[11:]     
 
     def setup_ui(self): 
-        self.setFixedSize(1000, 1000) 
+        self.setFixedSize(1000, 1000)  
 
         self.formation_button = CustomButton(self) 
         self.formation_button.setGeometry(QtCore.QRect(290, 10, 100, 40)) 
@@ -337,7 +337,13 @@ class LineupWindow(WindowParent):
         self.wildcard_button.setGeometry(QtCore.QRect(290, 800, 100, 40)) 
         self.wildcard_button.colour = 1 
         self.wildcard_button.setFont(QFont(self.settings.font, 8)) 
-        self.wildcard_button.setText('Wildcard') 
+        self.wildcard_button.setText('Wildcard')  
+
+        self.transfer_button = CustomButton(self)  
+        self.transfer_button.setGeometry(QtCore.QRect(430, 800, 100, 40)) 
+        self.transfer_button.colour = 1 
+        self.transfer_button.setFont(QFont(self.settings.font, 8)) 
+        self.transfer_button.setText('Recommend Transfers') 
 
         self.main_widget = QtWidgets.QWidget(self) 
         self.main_widget.setGeometry(QtCore.QRect(0, 50, 1000, 750)) 
@@ -346,7 +352,8 @@ class LineupWindow(WindowParent):
         self.formation_widget.setLayout(self.setup_formation_view()) 
 
         self.list_widget = QtWidgets.QWidget(self) 
-        self.list_widget.setLayout(self.setup_list_view()) 
+        self.list_widget.setLayout(self.setup_list_view())  
+
 
         self.stacked_layout = QStackedLayout(self)  
         self.stacked_layout.addWidget(self.formation_widget) 

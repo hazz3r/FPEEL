@@ -8,7 +8,7 @@ def graph_unweighted():
         [0, 12, 10, 0, 0, 0] 
     ] 
 
-    nodes = ["A", "B", "C", "D", "E", "F"] 
+    nodes = ["A", "B", "C", "D", "E", "F"]  
 
     for i in nodes: 
         for j in nodes: 
