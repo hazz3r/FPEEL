@@ -1,7 +1,7 @@
 {
-    "primary_colour": "rgb(224, 124, 232);",
+    "primary_colour": "rgb(255, 255, 255);",
     "secondary_colour": "rgb(0, 24, 132);",
-    "font": "Arial",
+    "font": "Calibri",
     "button_sound": "click.wav",
     "button_volume": 50
 }
